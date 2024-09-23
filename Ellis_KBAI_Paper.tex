@@ -201,11 +201,102 @@ Throughout every paper I read, the key topics that kept popping back up were the
 
 Thinking about the process of inferring transformations, I realized that many of the AI models in these papers perform poorly on the withheld testing set because the transformations in these tasks aren't appearing in the training set. A more robust AI model would be able to learn transformations as it goes instead of having the programmer hard code them into the source code. However, this is more easily said than done, and it may even be intractable with modern compute resources.
 
-% \section{Methodology}
-% Lorem Ipsum Methodology
+\section{Methodology}
+My first attempt at solving the ARC Prize Problem was based on Breadth-First Search since this method is straightforward to implement and easy to understand. First, I had to find a Domain Specific Language for my algorithm to search over. I decided to reuse the actions from Homework 2 to build the DSL \cite{maclellan_arc_homework}. This DSL included only global actions---I did not implement any way to extract objects from the grids and search over object-specific actions. The actions that were encoded in the DSL are
+\begin{itemize}
+    \item tophalf
+    \item rot90
+    \item hmirror
+    \item vmirror
+    \item lshift
+    \item compress
+    \item mapcolor(a,b)
+    \item trim
+\end{itemize}
+The pseudocode for my algorithm is described below:
+\begin{algorithmic}
+    \STATE $Q \gets initial \: state$
+    \WHILE{$Q$ is not empty}
+        \STATE $curr \: state \gets Q$.pop()
+        \FORALL{$action$ $\in$ DSL}
+            \STATE $new \: state \gets curr \: state$.perform$(action)$
+            \IF{$new \: state = goal \: state$}
+                \STATE Halt
+            \ELSE
+                \STATE $Q$.push$(new \; state)$
+            \ENDIF
+        \ENDFOR
+    \ENDWHILE
+\end{algorithmic}
 
-% \section{Experiments}
-% Lorem Ipsum Experiments
+\bigskip
+
+I have also included the following visual representation of this algorithm
+\begin{center}
+    \includegraphics[width=\hsize]{BFS_tree.drawio.png}
+\end{center}
+
+\bigskip
+
+This algorithm finds the chain of actions, which I will call the transformation, that transforms the initial state into the goal state. I also included a few optimizations in my implementation of this algorithm so that it would run in a reasonable amount of time.
+\begin{itemize}
+    \item Limit the depth of the search to 2 layers past the root
+    \item Refuse to expand/revisit puzzle states that have already been added to the queue
+    \item Only consider mapcolor($a$, $b$) if $a$ and $b$ actually show up in the input grid or output grid
+\end{itemize}
+
+\bigskip
+
+Once the algorithm has inferred a transformation based on the training pair(s), it applies that transformation to the testing input(s) and submits the output. If the algorithm cannot infer a transformation that transforms the testing inputs into their respective outputs, then it infers the null transformation and simply returns the testing input(s) with no modifications.
+
+\bigskip
+
+If the algorithm infers multiple conflicting transformations from the training pairs, then it prefers to select the longer transformation so that it is biased away from null transformations.
+
+\section{Experiments}
+After running the BFS algorithm a few times on the evaluation set, it has returned scores anywhere from 1.5 to 4 out of 400, and it takes about 40 seconds to process all 400 problems.
+
+\bigskip
+
+I found it interesting that my algorithm wasn't deterministic---the score changed between executions even though I didn't change any of the code. My best guess for what causes this is that my algorithm is arbitrarily breaking ties between conflicting transformations of the same length.
+
+\bigskip
+
+I've included some ARC tasks that my algorithm was successfully able to solve below:
+
+\begin{center}
+    \includegraphics[scale = 0.25]{solved_1.png}
+    \vspace{\baselineskip}\vspace{\baselineskip}
+    \includegraphics[scale = 0.25]{solved_2.png}
+    \vspace{\baselineskip}\vspace{\baselineskip}
+    \includegraphics[scale = 0.25]{solved_3.png}
+    \vspace{\baselineskip}\vspace{\baselineskip}
+    \includegraphics[scale = 0.25]{solved_4.png}
+\end{center}
+
+\bigskip
+
+I will go over why my algorithm was able to solve these.
+\begin{enumerate}
+    \item This is a simple compression, which is defined in my DSL
+    \item This is a color mapping of dark blue to black, AND a complex color mapping that depends on the shape of the dark blue object in the input. My algorithm cannot infer this, so it must've made a lucky guess.
+    \item The transformation here seems to be a compound color mapping, where black maps to different colors based on what color is shown in the input. My algorithm cannot infer this transformation, so it must've gotten lucky and inferred that black maps to blue, which would be correct for this test case.
+    \item This is another transformation that my algorithm cannot infer, so it must've gotten lucky and arbitrarily used the 3rd training pair to infer a transformation of [ lhalf, colormap(black, green) ], which works for the given test input. 
+\end{enumerate}
+
+\bigskip
+
+So my algorithm only functions properly for 1 out of 400 cases, but it sometimes gets lucky on another 3. Given this, I will propose some improvements that can be made to my algorithm for future iterations:
+
+\begin{enumerate}
+    \item Each transformation inferred from a testing pair gets a ``vote'', so if the same transformation is inferred from two different testing pairs, then it is more likely to be selected.
+
+    \item Add more complex color mapping symbols to the DSL. 3 out of 4 of the problems that I got correct here included color mapping, so it seems that color mapping is the most important thing in the DSL.
+
+    \item Drop some symbols from the DSL that aren't often used so that I can search deeper with a smaller DSL of more useful symbols.
+
+    \item Add support for object segmenting and object-specific transformations.
+\end{enumerate}
 
 % \section{Results}
 % Lorem Ipsum Results
