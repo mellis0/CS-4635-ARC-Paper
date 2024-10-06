@@ -296,6 +296,10 @@ So my algorithm only functions properly for 1 out of 400 cases, but it sometimes
     \item Drop some symbols from the DSL that aren't often used so that I can search deeper with a smaller DSL of more useful symbols.
 
     \item Add support for object segmenting and object-specific transformations.
+
+    \item Infer a transformation from all the input pairs holistically instead of each one individually. This would be helpful for scenarios when black maps to blue only if green appears in the input, for example.
+
+    \item Break ties between competing transformations using similarity weights. This would cause my algorithm to infer transformations that are more simple and thus more plausible.
 \end{enumerate}
 
 % \section{Results}
