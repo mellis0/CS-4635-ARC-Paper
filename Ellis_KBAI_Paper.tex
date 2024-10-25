@@ -251,27 +251,48 @@ Once the algorithm has inferred a transformation based on the training pair(s), 
 
 \bigskip
 
-If the algorithm infers multiple conflicting transformations from the training pairs, then it prefers to select the longer transformation so that it is biased away from null transformations.
+If the algorithm infers multiple conflicting transformations from the training pairs, then it prefers to select the shorter transformation.
 
-\section{Experiments}
-After running the BFS algorithm a few times on the evaluation set, it has returned scores anywhere from 1.5 to 4 out of 400, and it takes about 40 seconds to process all 400 problems.
+\bigskip\bigskip
+
+For my second implementation, I attempted to improve on my original Breadth-First Search approach by introducing predicate logic. Specifically, each action could be conditioned on what colors are present in the grid at that time step. For example, my agent could learn a rule like
+
+
+\begin{algorithmic}
+    \IF{RED $\in grid$}
+        \STATE mapcolor(RED, BLUE)
+    \ELSIF{BLUE $\in grid$}
+        \STATE mapcolor(BLUE, RED)
+    \ELSE
+        \STATE hmirror()
+    \ENDIF
+\end{algorithmic}
 
 \bigskip
 
-I found it interesting that my algorithm wasn't deterministic---the score changed between executions even though I didn't change any of the code. My best guess for what causes this is that my algorithm is arbitrarily breaking ties between conflicting transformations of the same length.
-
-\bigskip
-
-I've included some ARC tasks that my algorithm was successfully able to solve below:
+I implemented this by keeping track of the colors present in the grid at every state in the Breadth-First Search. This way, when the transformation for each training pair is found, that transformation also includes information about the colors at each step. From here, my agent builds a decision tree where, at each node, it decides on an action based on the colors present in the grid. This decision tree could look something like this:
 
 \begin{center}
-    \includegraphics[scale = 0.25]{solved_1.png}
+    \includegraphics[width=\hsize]{decision tree.drawio.png}
+\end{center}
+
+Once the decision tree has been constructed, the test input grid is passed through the decision tree, starting at the root. The specified actions are performed on it depending on what colors are present in the grid at each step, then it is submitted.
+
+\section{Experiments}
+Running my BFS algorithm without predicate logic yielded a score of 4 out of 400. I've included some ARC tasks that my algorithm was successfully able to solve below:
+
+\begin{center}
+    \includegraphics[scale = 0.22]{solved_1.png}\\
+    Figure 1\\
     \vspace{\baselineskip}\vspace{\baselineskip}
-    \includegraphics[scale = 0.25]{solved_2.png}
+    \includegraphics[scale = 0.22]{solved_2.png}\\
+    Figure 2\\
     \vspace{\baselineskip}\vspace{\baselineskip}
-    \includegraphics[scale = 0.25]{solved_3.png}
+    \includegraphics[scale = 0.22]{solved_3.png}\\
+    Figure 3\\
     \vspace{\baselineskip}\vspace{\baselineskip}
-    \includegraphics[scale = 0.25]{solved_4.png}
+    \includegraphics[scale = 0.22]{solved_4.png}\\
+    Figure 4
 \end{center}
 
 \bigskip
@@ -286,27 +307,79 @@ I will go over why my algorithm was able to solve these.
 
 \bigskip
 
-So my algorithm only functions properly for 1 out of 400 cases, but it sometimes gets lucky on another 3. Given this, I will propose some improvements that can be made to my algorithm for future iterations:
+So my algorithm only functions properly for 1 out of 400 cases, but it sometimes gets lucky on another 3. This inspired my second implementation, as described in the Methodology section: the implementation with predicate logic.
 
-\begin{enumerate}
-    \item Each transformation inferred from a testing pair gets a ``vote'', so if the same transformation is inferred from two different testing pairs, then it is more likely to be selected.
+\bigskip
 
-    \item Add more complex color mapping symbols to the DSL. 3 out of 4 of the problems that I got correct here included color mapping, so it seems that color mapping is the most important thing in the DSL.
+However, my predicate logic implementation turned out to be less effective than my original implementation -- it scored a mere 2.5 out of 400,  only solving the problems in Figures 1, 3, and 4. Despite predicate logic's ability to more accurately infer the semantics of problems like in Figures 3 and 4, it was unable to solve the problem in Figure 2, and it did not solve any new problems that my first attempt left unsolved.
 
-    \item Drop some symbols from the DSL that aren't often used so that I can search deeper with a smaller DSL of more useful symbols.
+\section{Results}
 
-    \item Add support for object segmenting and object-specific transformations.
+\renewcommand{\arraystretch}{1.5} % Increase row height
+\setlength{\tabcolsep}{10pt}      % Increase column spacing
 
-    \item Infer a transformation from all the input pairs holistically instead of each one individually. This would be helpful for scenarios when black maps to blue only if green appears in the input, for example.
+\begin{table}[h!]
+    \centering
+    \resizebox{\columnwidth}{!}{ % Scale the table to fit within a column
+    \begin{tabular}{|p{0.25\columnwidth}|c|c|} % Fixed-width first column
+        \hline
+        \textbf{Agent} & \textbf{Number Correct} & \textbf{Proportion Correct} \\
+        \hline
+        Vanilla BFS & 4 & 1\% \\
+        \hline
+        BFS and Predicate Logic & 2.5 & 0.6\% \\
+        \hline
+    \end{tabular}
+    }
+    \caption{Results Table}
+\end{table}
 
-    \item Break ties between competing transformations using similarity weights. This would cause my algorithm to infer transformations that are more simple and thus more plausible.
-\end{enumerate}
+Looking at the four figures above, the third and the fourth can both be solved more reliably by noticing the correlation between the colors in the input and the colors in the output. For figure 3, it is clear that light blue implies a mapping of black to red, green implies a mapping of black to dark blue, and so on.
 
-% \section{Results}
-% Lorem Ipsum Results
+\bigskip
 
-% \section{Discussion}
-% Lorem Ipsum Discussion
+My original Breadth-First Search agent got the problems in Figures 3 and 4 correct, but only with the help of some luck -- my agent wasn't able to infer the correct semantics here. These lucky guesses led me to believe that there were many more problems like these two in the ARC corpus that my agent was missing because it wasn't getting so lucky. Maybe I could solve more of these problems by inferring the conditional color mapping instead of relying on luck.
+
+\bigskip
+
+But this was not the case. My predicate logic agent scored a mere 2.5 out of 400, marking a decrease in performance from my original implementation.
+
+\bigskip
+
+My predicate logic implementation was able to solve the problems depicted in Figures 1, 3, and 4, but not Figure 2. I assume this is because the color transformation for figure 2 is predicated on shape, not color.
+
+\bigskip
+
+Contrary to my expectations, my predicate logic implementation did not capture any additional problems from the ARC corpus that my first approach wasn't already capturing. I believe this is because there aren't that many problems in the ARC corpus that rely on simple, global transformations and color mappings.
+
+\bigskip
+
+I have included one last example ARC problem below to reinforce my claim that many ARC problems cannot be solved with global transformations and color mappings. 
+
+\begin{center}
+    \includegraphics[scale=0.28]{unsolved.png}\\
+    Figure 5
+\end{center}
+
+Neither of my two agents were able to solve this one because it involves increasing the size of the output grid and tiling the input grid across the larger output grid. This behavior cannot be captured using global transforms, nor can it be predicated on colors that appear in the inputs. This is just one example of a type of problem that my agent isn't anywhere close to being able to solve, and it shows that predicating on color alone isn't nearly enough to realize the complex transformations endemic to the ARC corpus.
+
+%Comparison with Existing Literature: Relate your findings to the state of the art from your literature review. Does your work validate, contradict, or build upon existing knowledge?
+%Potential Implications: Ponder on the broader implications of your results in the field of Knowledge-Based AI. What does this mean for future research or practical applications in the field?
+% \cite{Xu_Khalil_Sanner_2023}
+\section{Discussion}
+My work here was heavily inspired by Xu, Khalil, and Stanner's 2023 paper about inferring transformations from the training grids to apply to the test grid. Similar to my approach, they search over a space of potential actions, looking for the series of actions that will transform the training input into its respective training output \cite{Xu_Khalil_Sanner_2023}.
+
+\bigskip
+
+However, our approaches differ in the type of actions being searched over. My agent searches over global actions, while Xu's agent searches over object-specific transformations. I elected to search over global transformations so that I could keep my implemtation straightforward and human-interpretable from top to bottom. There are no nebulous neural nets or latent parameters in my code, unlike Xu's approach which uses Abstract Reasoning with Graphical Abstractions, or ARGA for short.
+
+\bigskip
+
+I was hoping to discover that Xu missed something -- that maybe predicating actions based on color was a good enough heuristic to execute object-specific transformations. This turned out to not be the case; object recognition seems to be a critical component of reliably solving ARC problems.
+
+\bigskip
+
+I believe that the strategies I've implemented here in this paper can play a part in an agent that can reliably solve ARC problems, but only a small part. A reliable agent would have to be able to recognize patterns, reason globally, reason at the object level, and reason over the relationships between the objects. On top of this, it would have to be able to do all that in a reasonable amount of time.
 
 % \section{Conclusion}
 % Lorem Ipsum Conclusion
