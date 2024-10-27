@@ -311,7 +311,7 @@ So my algorithm only functions properly for 1 out of 400 cases, but it sometimes
 
 \bigskip
 
-However, my predicate logic implementation turned out to be less effective than my original implementation -- it scored a mere 2.5 out of 400,  only solving the problems in Figures 1, 3, and 4. Despite predicate logic's ability to more accurately infer the semantics of problems like in Figures 3 and 4, it was unable to solve the problem in Figure 2, and it did not solve any new problems that my first attempt left unsolved.
+However, my predicate logic implementation turned out to be less effective than my original implementation -- it scored a mere 2.5 out of 400,  only solving the problems in Figures 1, 3, and 4. Despite predicate logic's ability to more accurately infer the semantics of problems like the ones in Figures 3 and 4, it was unable to solve the problem in Figure 2, and it did not solve any new problems that my first attempt left unsolved.
 
 \section{Results}
 
@@ -367,7 +367,7 @@ Neither of my two agents were able to solve this one because it involves increas
 %Potential Implications: Ponder on the broader implications of your results in the field of Knowledge-Based AI. What does this mean for future research or practical applications in the field?
 % \cite{Xu_Khalil_Sanner_2023}
 \section{Discussion}
-My work here was heavily inspired by Xu, Khalil, and Stanner's 2023 paper about inferring transformations from the training grids to apply to the test grid. Similar to my approach, they search over a space of potential actions, looking for the series of actions that will transform the training input into its respective training output \cite{Xu_Khalil_Sanner_2023}.
+My work here was inspired by Xu, Khalil, and Stanner's 2023 paper about inferring transformations from the training grids to apply to the test grid. Similar to my approach, they search over a space of potential actions, looking for the series of actions that will transform the training input into its respective training output \cite{Xu_Khalil_Sanner_2023}.
 
 \bigskip
 
@@ -375,7 +375,7 @@ However, our approaches differ in the type of actions being searched over. My ag
 
 \bigskip
 
-I was hoping to discover that Xu missed something -- that maybe predicating actions based on color was a good enough heuristic to execute object-specific transformations. This turned out to not be the case; object recognition seems to be a critical component of reliably solving ARC problems.
+I was hoping to discover that Xu missed something -- that maybe predicating actions based on color was a good enough heuristic to estimate object-specific transformations. This turned out to not be the case; object recognition seems to be a critical component of reliably solving ARC problems.
 
 \bigskip
 
