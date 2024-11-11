@@ -363,15 +363,13 @@ I have included one last example ARC problem below to reinforce my claim that ma
 
 Neither of my two agents were able to solve this one because it involves increasing the size of the output grid and tiling the input grid across the larger output grid. This behavior cannot be captured using global transforms, nor can it be predicated on colors that appear in the inputs. This is just one example of a type of problem that my agent isn't anywhere close to being able to solve, and it shows that predicating on color alone isn't nearly enough to realize the complex transformations endemic to the ARC corpus.
 
-%Comparison with Existing Literature: Relate your findings to the state of the art from your literature review. Does your work validate, contradict, or build upon existing knowledge?
-%Potential Implications: Ponder on the broader implications of your results in the field of Knowledge-Based AI. What does this mean for future research or practical applications in the field?
-% \cite{Xu_Khalil_Sanner_2023}
+
 \section{Discussion}
 My work here was inspired by Xu, Khalil, and Stanner's 2023 paper about inferring transformations from the training grids to apply to the test grid. Similar to my approach, they search over a space of potential actions, looking for the series of actions that will transform the training input into its respective training output \cite{Xu_Khalil_Sanner_2023}.
 
 \bigskip
 
-However, our approaches differ in the type of actions being searched over. My agent searches over global actions, while Xu's agent searches over object-specific transformations. I elected to search over global transformations so that I could keep my implemtation straightforward and human-interpretable from top to bottom. There are no nebulous neural nets or latent parameters in my code, unlike Xu's approach which uses Abstract Reasoning with Graphical Abstractions, or ARGA for short.
+However, our approaches differ in the type of actions being searched over. My agent searches over global actions, while Xu's agent searches over object-specific transformations. I elected to search over global transformations so that I could keep my implementation fast, straightforward, and human-interpretable from top to bottom. There are no nebulous neural nets or latent parameters in my code, unlike Xu's approach which uses Abstract Reasoning with Graphical Abstractions, or ARGA for short.
 
 \bigskip
 
@@ -381,11 +379,35 @@ I was hoping to discover that Xu missed something -- that maybe predicating acti
 
 I believe that the strategies I've implemented here in this paper can play a part in an agent that can reliably solve ARC problems, but only a small part. A reliable agent would have to be able to recognize patterns, reason globally, reason at the object level, and reason over the relationships between the objects. On top of this, it would have to be able to do all that in a reasonable amount of time.
 
-% \section{Conclusion}
-% Lorem Ipsum Conclusion
+\section{Conclusion}
+In conclusion, my model did not work as well as I would have liked. Breadth-First Search was able to correctly answer only 4 out of 400 ARC Prize Problems. To make matters worse, BFS only correctly `understood' the semantics of 1 transformation. The other 3 problems that my model got correct were essentially lucky guesses.
 
-% \section{Future Works}
-% Lorem Ipsum Future Works
+\bigskip
+
+However, this lack of success tells another story: a tree search algorithm can be the engine behind a solid ARC Problem solver. My work here proves the concept that Breadth-First Search can reason over a set of transformations to determine a path from input to output. A more robust DSL of nuanced transformations could capture a much larger state space, which would cover more ARC Prize problems.
+
+\bigskip
+
+My model's ability to guess correctly on those 3 problems where it inferred the wrong transformation also tells another story. Tree searching algorithms like mine will be biased towards the simplest transformation between input and output. This inferred transformation might not capture all the nuances of the ground-truth transformation, but if it can capture some of the nuance, it has the ability to make an educated guess about the output. This ability to make educated guesses is another strength of tree search algorithms. The ARC Prize's hidden evaluation set contains many transformations that may be unfamiliar to the submitted bots and their creators, so it is important for the submitted bots to have the ability to take a stab at answering tough questions instead of simply throwing their hands up in defeat.
+
+\bigskip
+
+My biggest disappointment in this project was the lack of performance I encountered when implementing my predicate logic feature. As I mentioned earlier, my vanilla BFS implementation had a tendancy to over-generalize, so using predicate logic to infer more complex transformations seemed like an easy fix. Unfortunately, this instead lead to the problem of over-specifying --- my model would infer connections that simply didn't exist. This lead me to the conclusion that it is better to err on the side of general transformations rather than specific transformations. 
+
+\bigskip
+
+My model worked exactly as intended for at least one of the ARC Prize problems, which shows that there is some promise to the tree-search strategy. Search's ability to filter out red herrings by finding the shortest path from the initial state to the goal helps to distill the ARC Prize Problems to a simpler version of themselves, but one has to be careful to not loose too much of that detail. I couldn't quite strike the balance between specificity and generalization in my implementation, but my results show that Search can be a critical part of a performant ARC agent.
+
+\section{Future Works}
+As I mentioned in the Conclusion, one improvement that could be made to my work here is to build a more robust DSL of actions so that a search algorithm can infer more nuanced transformations. This DSL should include object-specific transformations, which would mean the inclusion of a method to recognize and abstract objects. Xu, Khalil, and Stanner's implementation was similar to this, but it might be improved on with tuning to the generality/specificity of the output \cite{Xu_Khalil_Sanner_2023}. One could make a search model more general by including broader heuristics or limiting the search depth, or more specific by predicating transformations like I attempted to do. 
+
+\bigskip
+
+One issue that may arise with a more nuanced DSL is runtime. My model's runtime started to get intractable when I tried to search a depth of more than 3 actions across my relatively limited DSL. One way to ameliorate this would be through informing the search algorithm with a heuristic instead of using vanilla BFS.
+
+\bigskip
+
+It now seems clear to me that a good solution to the ARC Prize Problem must include many separate subsystems all working in concert to synthesize a transformation, which is a bit frustrating to me. ARC problems are so elegant and simple --- they are just a pair of grids connected by latent pattern. Compared to other computer science problems like traveling salesman and encryption, the ARC problems almost look easy at first glance; they almost look like they should have a simple and straightforward solution, but it is clear to me now that this is not the case. A solution to the ARC Prize Problems won't come from some eureka moment or simple new algorithm, but instead from the meticulous integration of already-know AI algorithms into a seamless super-system.
 
 \bibliography{sources}
 
